@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>💖 Relationship Renewal 💖</title>
 
-<!-- Google Font -->
 <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@300;500&display=swap" rel="stylesheet">
 
 <style>
@@ -13,19 +12,11 @@ body {
     margin: 0;
     font-family: 'Poppins', sans-serif;
     text-align: center;
-    background: linear-gradient(135deg, #fff0f5, #ffe4e1, #fff);
+    background: linear-gradient(135deg, #fff0f5, #ffe4e1);
     color: #d63384;
-    overflow-x: hidden;
 }
 
-h1 {
-    font-family: 'Pacifico', cursive;
-    font-size: 2.5rem;
-}
-
-.container {
-    padding: 20px;
-}
+h1 { font-family: 'Pacifico', cursive; }
 
 .grid {
     display: grid;
@@ -37,14 +28,9 @@ h1 {
 .tile {
     width: 90px;
     height: 90px;
-    background-size: cover;
-    border-radius: 12px;
+    border-radius: 10px;
     cursor: pointer;
-    transition: transform 0.2s;
-}
-
-.tile:hover {
-    transform: scale(1.05);
+    background-repeat: no-repeat;
 }
 
 button {
@@ -54,102 +40,60 @@ button {
     color: white;
     border-radius: 20px;
     cursor: pointer;
-    margin-top: 10px;
-    font-size: 1rem;
+    margin: 5px;
 }
 
-.hidden { display: none; }
+.locked { opacity: 0.5; }
 
-/* Floating hearts */
-.heart {
+.confetti {
     position: fixed;
-    bottom: -10px;
-    font-size: 20px;
-    animation: floatUp 6s linear infinite;
+    width: 10px;
+    height: 10px;
+    background: red;
+    top: 0;
+    animation: fall 3s linear forwards;
 }
 
-@keyframes floatUp {
-    0% { transform: translateY(0); opacity: 1; }
-    100% { transform: translateY(-100vh); opacity: 0; }
+@keyframes fall {
+    to { transform: translateY(100vh); opacity: 0; }
 }
 </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>💖 Relationship Renewal 💖</h1>
-    <p>Complete all stages to unlock something special 💌</p>
+<h1>💖 Relationship Renewal 💖</h1>
+<p>Unlock all stages 💕</p>
 
-    <button onclick="startGame()">Start Game</button>
-
-    <div id="game"></div>
-
-    <div id="quiz" class="hidden">
-        <h2>💕 Final Quiz 💕</h2>
-        <div id="questionBox"></div>
-    </div>
+<div>
+    <button onclick="startStage(0)">Stage 1</button>
+    <button id="btn2" class="locked" onclick="startStage(1)" disabled>Stage 2</button>
+    <button id="btn3" class="locked" onclick="startStage(2)" disabled>Stage 3</button>
 </div>
 
-<!-- Background Music -->
+<div id="game"></div>
+<div id="quiz" style="display:none"></div>
+
 <audio id="bgMusic" loop>
     <source src="music.mp3" type="audio/mpeg">
 </audio>
 
 <script>
-// ================= CONFIG =================
-const images = [
-    "stage1.jpg",
-    "stage2.jpg",
-    "stage3.jpg"
-];
+const images = ["stage1.jpg", "stage2.jpg", "stage3.jpg"];
+const sizes = [3, 4, 5];
 
-const quizData = [
-    {
-        q: "Question 1: When did we first meet?",
-        options: ["A", "B", "C", "D"],
-        correct: 0
-    },
-    {
-        q: "Question 2: Our favorite place?",
-        options: ["A", "B", "C", "D"],
-        correct: 1
-    },
-    {
-        q: "Question 3: What do you love about me?",
-        options: ["A", "B", "C", "D"],
-        correct: 2
-    },
-    {
-        q: "Question 4: Our best memory?",
-        options: ["A", "B", "C", "D"],
-        correct: 3
-    },
-    {
-        q: "Question 5: Will you renew our love? 💖",
-        options: ["Yes", "Of course", "Always", "Forever"],
-        correct: 3
-    }
-];
-// ==========================================
-
-let stage = 0;
-let size = 3;
+let currentStage = 0;
 let selected = null;
-let currentQuestion = 0;
 
-function startGame() {
+function startStage(stage) {
     document.getElementById('bgMusic').play();
-    stage = 0;
-    loadStage();
+    currentStage = stage;
+    loadGame();
 }
 
-function loadStage() {
+function loadGame() {
+    const size = sizes[currentStage];
     const game = document.getElementById('game');
-    game.innerHTML = `<h2>Stage ${stage + 1}</h2>`;
-
-    if (stage === 0) size = 3;
-    if (stage === 1) size = 4;
-    if (stage === 2) size = 5;
+    game.innerHTML = `<h2>Stage ${currentStage + 1}</h2>`;
 
     const grid = document.createElement('div');
     grid.className = 'grid';
@@ -161,10 +105,11 @@ function loadStage() {
     tiles.forEach(index => {
         const tile = document.createElement('div');
         tile.className = 'tile';
+
         const x = index % size;
         const y = Math.floor(index / size);
 
-        tile.style.backgroundImage = `url(${images[stage]})`;
+        tile.style.backgroundImage = `url(${images[currentStage]})`;
         tile.style.backgroundSize = `${size * 90}px ${size * 90}px`;
         tile.style.backgroundPosition = `-${x * 90}px -${y * 90}px`;
 
@@ -191,6 +136,7 @@ function selectTile(tile) {
 
 function checkWin() {
     const tiles = document.querySelectorAll('.tile');
+    const size = sizes[currentStage];
     let correct = true;
 
     tiles.forEach((tile, i) => {
@@ -201,56 +147,69 @@ function checkWin() {
     });
 
     if (correct) {
-        createHearts();
-        setTimeout(() => {
-            stage++;
-            if (stage < 3) loadStage();
-            else startQuiz();
-        }, 1000);
+        confetti();
+
+        if (currentStage === 0) {
+            document.getElementById('btn2').disabled = false;
+            document.getElementById('btn2').classList.remove('locked');
+        }
+        if (currentStage === 1) {
+            document.getElementById('btn3').disabled = false;
+            document.getElementById('btn3').classList.remove('locked');
+        }
+
+        if (currentStage === 2) {
+            setTimeout(startQuiz, 1000);
+        }
     }
 }
 
-function createHearts() {
-    for (let i = 0; i < 20; i++) {
-        const heart = document.createElement('div');
-        heart.className = 'heart';
-        heart.innerHTML = '💖';
-        heart.style.left = Math.random() * 100 + 'vw';
-        heart.style.animationDuration = (3 + Math.random() * 3) + 's';
-        document.body.appendChild(heart);
-
-        setTimeout(() => heart.remove(), 6000);
+function confetti() {
+    for (let i = 0; i < 50; i++) {
+        const c = document.createElement('div');
+        c.className = 'confetti';
+        c.style.left = Math.random() * 100 + 'vw';
+        c.style.background = ['#ff4d6d','#ff99ac','#ffc2d1'][Math.floor(Math.random()*3)];
+        document.body.appendChild(c);
+        setTimeout(() => c.remove(), 3000);
     }
 }
 
-// QUIZ SYSTEM
+// QUIZ
+const quizData = [
+    { q: "Question 1: When did we first meet?", options: ["A","B","C","D"] },
+    { q: "Question 2: Our favorite place?", options: ["A","B","C","D"] },
+    { q: "Question 3: Best memory?", options: ["A","B","C","D"] },
+    { q: "Question 4: What do you love most?", options: ["A","B","C","D"] },
+    { q: "Question 5: Forever together? 💖", options: ["Yes","Always","Forever","100%"] }
+];
+
+let qIndex = 0;
+
 function startQuiz() {
     document.getElementById('game').innerHTML = "";
-    document.getElementById('quiz').classList.remove('hidden');
-    currentQuestion = 0;
+    const quiz = document.getElementById('quiz');
+    quiz.style.display = 'block';
     showQuestion();
 }
 
 function showQuestion() {
-    const qBox = document.getElementById('questionBox');
-    const q = quizData[currentQuestion];
+    const q = quizData[qIndex];
+    const quiz = document.getElementById('quiz');
 
-    qBox.innerHTML = `<h3>${q.q}</h3>`;
+    quiz.innerHTML = `<h2>${q.q}</h2>`;
 
-    q.options.forEach((opt, i) => {
-        qBox.innerHTML += `<button onclick="nextQuestion(${i})">${opt}</button><br>`;
+    q.options.forEach(opt => {
+        quiz.innerHTML += `<button onclick='nextQ()'>${opt}</button><br>`;
     });
 }
 
-function nextQuestion(selectedOption) {
-    currentQuestion++;
-
-    if (currentQuestion < quizData.length) {
-        showQuestion();
-    } else {
-        document.getElementById('questionBox').innerHTML =
-            "<h2>💖 Relationship Renewed Successfully 💖</h2>";
-        createHearts();
+function nextQ() {
+    qIndex++;
+    if (qIndex < quizData.length) showQuestion();
+    else {
+        document.getElementById('quiz').innerHTML = "<h2>💖 Relationship Renewed 💖</h2>";
+        confetti();
     }
 }
 </script>
