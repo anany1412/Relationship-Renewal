@@ -13,12 +13,9 @@ body {
  text-align:center;
  background:linear-gradient(135deg,#fff0f5,#ffe4e1);
  color:#d63384;
- overflow-x:hidden;
+ overflow:hidden;
 }
-
 h1 { font-family:'Pacifico',cursive; }
-
-.hidden { display:none; }
 
 button {
  padding:12px 25px;
@@ -28,45 +25,33 @@ button {
  border-radius:25px;
  margin:10px;
  cursor:pointer;
- font-size:16px;
- transition:0.3s;
 }
-button:hover { transform:scale(1.05); }
 
-.bigBtn { font-size:20px; padding:15px 35px; }
+.bigBtn { font-size:20px; }
 
-.fade { animation:fadeIn .8s ease; }
-@keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+#slider { width:80%; }
 
-.heart {
- position:fixed;
- bottom:-20px;
- font-size:20px;
- animation:float 6s linear infinite;
-}
-@keyframes float { to { transform:translateY(-100vh); opacity:0; } }
-
-/* SLIDER */
-#slider { width:80%; margin-top:30px; }
+.hidden { display:none; }
 
 /* PUZZLE */
 .grid { display:grid; gap:5px; justify-content:center; margin:20px auto; }
 .tile { width:90px; height:90px; border-radius:10px; cursor:pointer; background-repeat:no-repeat; }
 
-/* LETTER */
-#loveLetter {
- max-width:600px;
- margin:auto;
- font-size:18px;
- line-height:1.6;
+/* HEARTS */
+.heart {
+ position:fixed;
+ bottom:-20px;
+ animation:float 6s linear infinite;
+ text-shadow:0 0 10px pink,0 0 20px hotpink;
 }
+@keyframes float { to { transform:translateY(-100vh); opacity:0; } }
 
 /* IMAGE */
-#slideImg {
- width:250px;
- border-radius:15px;
- box-shadow:0 10px 25px rgba(0,0,0,0.2);
-}
+#slideImg { width:250px; border-radius:15px; }
+
+/* LETTER */
+#loveLetter { max-width:600px; margin:auto; }
+
 </style>
 </head>
 
@@ -74,180 +59,272 @@ button:hover { transform:scale(1.05); }
 
 <h1>💖 For My Betu 💖</h1>
 
-<p>Swipe to unlock our story 💕</p>
-<input type="range" min="0" max="100" value="0" id="slider">
+<p>Swipe to unlock 💕</p>
+<input type="range" id="slider" min="0" max="100">
 
 <div id="main" class="hidden">
-<button onclick="startStory()">Start Our Journey 💖</button>
+<button onclick="startStory()">Start 💖</button>
+
 <div id="game"></div>
 <div id="quiz" class="hidden"></div>
+<div id="extraQuiz" class="hidden"></div>
 <div id="final" class="hidden"></div>
 </div>
 
 <audio id="bgMusic" loop>
-<source src="music.mp3" type="audio/mpeg">
+<source src="music.mp3">
+</audio>
+
+<audio id="voiceMsg">
+<source src="voice.mp3">
 </audio>
 
 <script>
 
-/* SLIDER UNLOCK */
-document.getElementById("slider").oninput = function(){
- if(this.value > 90){
-   document.getElementById("main").classList.remove("hidden");
+/* SLIDER */
+slider.oninput=function(){
+ if(this.value>90){
+  main.classList.remove("hidden");
  }
-};
+}
 
 /* HEARTS */
 setInterval(()=>{
- const h=document.createElement('div');
- h.className='heart';
- h.innerHTML='💖';
- h.style.left=Math.random()*100+'vw';
+ let h=document.createElement("div");
+ h.className="heart";
+ h.innerHTML="💖";
+ h.style.left=Math.random()*100+"vw";
  document.body.appendChild(h);
  setTimeout(()=>h.remove(),6000);
 },500);
 
-/* DATE LOCK */
-function checkDate(){
- let input = prompt("Enter our anniversary date (DDMMYYYY) 💖");
- if(input !== "04042024"){
-   alert("Wrong date 😢");
-   location.reload();
+/* START */
+function startStory(){
+ document.getElementById("bgMusic").play();
+ startStage(0);
+}
+
+/* PUZZLE STAGES */
+const images=["stage1.jpg","stage2.jpg","stage3.jpg"];
+const sizes=[3,4,5];
+
+let currentStage=0, selected=null;
+
+function startStage(stage){
+ currentStage=stage;
+ loadGame();
+}
+
+function loadGame(){
+ const size=sizes[currentStage];
+ const game=document.getElementById('game');
+ game.innerHTML=`<h2>Stage ${currentStage+1}</h2>`;
+
+ const grid=document.createElement('div');
+ grid.className='grid';
+ grid.style.gridTemplateColumns=`repeat(${size},90px)`;
+
+ let tiles=[...Array(size*size).keys()].sort(()=>Math.random()-0.5);
+
+ tiles.forEach(value=>{
+  const tile=document.createElement('div');
+  tile.className='tile';
+
+  const x=value%size;
+  const y=Math.floor(value/size);
+
+  tile.style.backgroundImage=`url(${images[currentStage]})`;
+  tile.style.backgroundSize=`${size*90}px ${size*90}px`;
+  tile.style.backgroundPosition=`-${x*90}px -${y*90}px`;
+  tile.dataset.correct=value;
+
+  tile.onclick=()=>selectTile(tile);
+  grid.appendChild(tile);
+ });
+
+ game.appendChild(grid);
+}
+
+function selectTile(tile){
+ if(!selected){
+  selected=tile;
+  tile.style.border="3px solid red";
+ } else {
+  let tempPos=selected.style.backgroundPosition;
+  let tempCorrect=selected.dataset.correct;
+
+  selected.style.backgroundPosition=tile.style.backgroundPosition;
+  selected.dataset.correct=tile.dataset.correct;
+
+  tile.style.backgroundPosition=tempPos;
+  tile.dataset.correct=tempCorrect;
+
+  selected.style.border="none";
+  selected=null;
+  checkWin();
  }
 }
 
-/* START */
-function startStory(){
- checkDate();
- document.getElementById('bgMusic').play();
- startQuiz();
+function checkWin(){
+ const tiles=document.querySelectorAll('.tile');
+ let correct=true;
+
+ tiles.forEach((tile,i)=>{
+  if(parseInt(tile.dataset.correct)!==i) correct=false;
+ });
+
+ if(correct){
+  if(currentStage<2){
+   startStage(currentStage+1);
+  } else {
+   startQuiz();
+  }
+ }
 }
 
-/* QUIZ */
+/* ORIGINAL QUIZ */
 const quizData=[
-{q:"When did we first meet?",options:["04 Apr 24","07 Apr 24","12 Oct 23"],correct:1},
-{q:"Our first memory?",options:["Combi & Ice Cream","Movie","Shopping"],correct:0},
-{q:"Our first trip?",options:["Mathura","Delhi","Goa"],correct:0},
+{q:"Question 1: When did we first meet?",options:["16 Dec 25","04 Apr 24","12 Oct 23","18 Apr 24"],correct:1},
+{q:"Question 2: Our favorite Thing And place?",options:["Staying At Home","Wondering Together Holding Hands Without a plan","Going on A vaccaion","Spend The Most Time Together"],correct:3},
+{q:"Question 3: Best memory?",options:["We went to mathura","We did boating","We went Agra","All of the above"],correct:3},
+{q:"Question 4: Where I Gave You Your First Soft Toy?",options:["Bhopal","Delhi","Jaipur","Agra"],correct:2},
+{q:"Question 5: Will We Always Be Forever & together? 💖",options:["Yes","Always","Forever","100%"],correct:2}
 ];
 
-let qIndex=0, selected=null;
+let qi=0, sel=null;
 
 function startQuiz(){
- document.getElementById('quiz').classList.remove('hidden');
+ game.innerHTML="";
+ quiz.classList.remove("hidden");
  showQ();
 }
 
 function showQ(){
- const q=quizData[qIndex];
- const div=document.getElementById('quiz');
- div.innerHTML=`<h2>${q.q}</h2>`;
+ let q=quizData[qi];
+ quiz.innerHTML=`<h2>${q.q}</h2>`;
  q.options.forEach((o,i)=>{
- div.innerHTML+=`<button onclick="selectAns(${i},this)">${o}</button><br>`;
+  quiz.innerHTML+=`<button onclick="ans(${i},this)">${o}</button><br>`;
  });
- div.innerHTML+=`<br><button onclick="nextQ()">Next</button>`;
+ quiz.innerHTML+=`<button onclick="next()">Next ➡️</button>`;
 }
 
-function selectAns(i,el){
- selected=i;
- document.querySelectorAll('#quiz button').forEach(b=>b.style.background='#ff4d6d');
- el.style.background='green';
+function ans(i,e){
+ sel=i;
+ document.querySelectorAll("#quiz button").forEach(b=>b.style.background="#ff4d6d");
+ e.style.background="green";
 }
 
-function nextQ(){
- if(selected===null) return alert("Choose one");
- if(selected!==quizData[qIndex].correct){
- document.getElementById('quiz').innerHTML="<h2>❌ Try again</h2>";
- return;
+function next(){
+ if(sel===null) return alert("Select one!");
+ if(sel!=quizData[qi].correct){
+  location.reload();
  }
- selected=null;
- qIndex++;
- if(qIndex<quizData.length) showQ();
+ sel=null;
+ qi++;
+ if(qi<quizData.length) showQ();
+ else startExtraQuiz();
+}
+
+/* EXTRA QUIZ */
+const extra=[
+{q:"Do you love me forever? 💖",options:["Yes","Always","Forever"],correct:2},
+{q:"Who am I to you?",options:["Your person","Your everything","Your love"],correct:1}
+];
+
+let eq=0, es=null;
+
+function startExtraQuiz(){
+ quiz.classList.add("hidden");
+ extraQuiz.classList.remove("hidden");
+ showExtra();
+}
+
+function showExtra(){
+ let q=extra[eq];
+ extraQuiz.innerHTML=`<h2>${q.q}</h2>`;
+ q.options.forEach((o,i)=>{
+  extraQuiz.innerHTML+=`<button onclick="eAns(${i},this)">${o}</button><br>`;
+ });
+ extraQuiz.innerHTML+=`<button onclick="nextExtra()">Next</button>`;
+}
+
+function eAns(i,e){
+ es=i;
+ document.querySelectorAll("#extraQuiz button").forEach(b=>b.style.background="#ff4d6d");
+ e.style.background="green";
+}
+
+function nextExtra(){
+ if(es===null) return alert("Select one!");
+ es=null;
+ eq++;
+ if(eq<extra.length) showExtra();
  else showFinal();
 }
 
 /* FINAL */
 function showFinal(){
- document.getElementById('quiz').classList.add('hidden');
- const final=document.getElementById('final');
- final.classList.remove('hidden');
+ extraQuiz.classList.add("hidden");
+ final.classList.remove("hidden");
 
- final.innerHTML = `
- <div class="fade">
-
- <div id="slideshow">
-   <img id="slideImg" src="photo1.jpg">
- </div>
-
- <br><div id="loveLetter"></div>
-
- <br><br>
- <div style="font-size:22px;">
- 💖 You are my today and all of my tomorrows 💖
- <br><br>
- Will you stay with me forever? 💍
- <br><br>
- <button class="bigBtn" onclick="yes()">YES 💖</button>
- </div>
-
- </div>
+ final.innerHTML=`
+ <img id="slideImg" src="photo1.jpg">
+ <div id="loveLetter"></div>
+ <div id="countdown"></div>
  `;
 
- startSlideshow();
+ startSlide();
  typeLetter();
+ voiceMsg.play();
+ startCountdown();
 }
 
-/* SLIDESHOW */
-const slides=["photo1.jpg","photo2.jpg","photo3.jpg"];
+/* SLIDESHOW (photo1 → photo5) */
+let slides=["photo1.jpg","photo2.jpg","photo3.jpg","photo4.jpg","photo5.jpg"];
 let si=0;
 
-function startSlideshow(){
+function startSlide(){
  setInterval(()=>{
-   si=(si+1)%slides.length;
-   document.getElementById("slideImg").src=slides[si];
+  si=(si+1)%slides.length;
+  slideImg.src=slides[si];
  },2000);
 }
 
-/* TYPEWRITER LETTER */
-const text = `From that esports tournament...
-I never knew that a simple meeting would become the most beautiful part of my life.
+/* LETTER */
+const text=`From that esports tournament...
+I never knew that a simple meeting would become the most beautiful part of my life...
 
-On 7th April, when we met...
-those small moments like eating combi and ice cream became memories I’ll never forget.
-
-And when I saw you crying a little when I was leaving...
-that’s when I realized you are something special.
-
-From Mathura to Agra to Mahakaleshwar...
-every place became meaningful because you were with me.
-
-You gave me happiness, trust, and a love I never imagined.
-
-Thank you for coming into my life, Betu.
-
-I don’t just love you...
-I truly, deeply, endlessly love you. 💖`;
+Thank you for coming into my life Betu...
+I truly love you 💖`;
 
 let ti=0;
 
 function typeLetter(){
- const el=document.getElementById("loveLetter");
  if(ti<text.length){
-   el.innerHTML+=text.charAt(ti);
-   ti++;
-   setTimeout(typeLetter,40);
+  loveLetter.innerHTML+=text[ti];
+  ti++;
+  setTimeout(typeLetter,40);
  }
 }
 
-/* FINAL YES */
-function yes(){
- document.getElementById('final').innerHTML="<h1>💖 Forever Together 💖<br><br>I Love You Betu 💕</h1>";
+/* COUNTDOWN */
+function startCountdown(){
+ let c=5;
+ let i=setInterval(()=>{
+  countdown.innerHTML="⏳ "+c;
+  c--;
+  if(c<0){
+   clearInterval(i);
+   countdown.innerHTML=`
+   💖 Will you stay with me forever? 💍
+   <br><button class="bigBtn" onclick="yes()">YES 💖</button>
+   `;
+  }
+ },1000);
 }
 
-/* MUSIC TOGGLE */
-function toggleMusic(){
- const m=document.getElementById('bgMusic');
- if(m.paused) m.play();
- else m.pause();
+function yes(){
+ document.body.innerHTML="<h1>💖 FOREVER 💖</h1>";
 }
 
 </script>
