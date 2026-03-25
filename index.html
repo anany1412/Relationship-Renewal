@@ -8,55 +8,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@300;500&display=swap" rel="stylesheet">
 
 <style>
-body {
-    margin: 0;
-    font-family: 'Poppins', sans-serif;
-    text-align: center;
-    background: linear-gradient(135deg, #fff0f5, #ffe4e1);
-    color: #d63384;
-}
-
-h1 { font-family: 'Pacifico', cursive; }
-
-.grid {
-    display: grid;
-    gap: 5px;
-    justify-content: center;
-    margin: 20px auto;
-}
-
-.tile {
-    width: 90px;
-    height: 90px;
-    border-radius: 10px;
-    cursor: pointer;
-    background-repeat: no-repeat;
-}
-
-button {
-    padding: 10px 20px;
-    border: none;
-    background: #ff4d6d;
-    color: white;
-    border-radius: 20px;
-    cursor: pointer;
-    margin: 5px;
-}
-
-.locked { opacity: 0.5; }
-
-.confetti {
-    position: fixed;
-    width: 10px;
-    height: 10px;
-    background: red;
-    top: 0;
-    animation: fall 3s linear forwards;
-}
-
-@keyframes fall {
-    to { transform: translateY(100vh); opacity: 0; }
-}
+body { font-family: 'Poppins', sans-serif; text-align:center; background: linear-gradient(135deg,#fff0f5,#ffe4e1); color:#d63384; }
+h1 { font-family:'Pacifico',cursive; }
+.grid { display:grid; gap:5px; justify-content:center; margin:20px auto; }
+.tile { width:90px; height:90px; border-radius:10px; cursor:pointer; background-repeat:no-repeat; }
+button { padding:10px 20px; border:none; background:#ff4d6d; color:white; border-radius:20px; margin:5px; cursor:pointer; }
+.locked { opacity:0.5; }
+.confetti { position:fixed; width:10px; height:10px; top:0; animation:fall 3s linear forwards; }
+@keyframes fall { to { transform:translateY(100vh); opacity:0; } }
 </style>
 </head>
 <body>
@@ -65,152 +24,159 @@ button {
 <p>Unlock all stages 💕</p>
 
 <div>
-    <button onclick="startStage(0)">Stage 1</button>
-    <button id="btn2" class="locked" onclick="startStage(1)" disabled>Stage 2</button>
-    <button id="btn3" class="locked" onclick="startStage(2)" disabled>Stage 3</button>
+<button onclick="startStage(0)">Stage 1</button>
+<button id="btn2" class="locked" onclick="startStage(1)" disabled>Stage 2</button>
+<button id="btn3" class="locked" onclick="startStage(2)" disabled>Stage 3</button>
 </div>
 
 <div id="game"></div>
 <div id="quiz" style="display:none"></div>
 
 <audio id="bgMusic" loop>
-    <source src="music.mp3" type="audio/mpeg">
+<source src="music.mp3" type="audio/mpeg">
 </audio>
 
 <script>
-const images = ["stage1.jpg", "stage2.jpg", "stage3.jpg"];
-const sizes = [3, 4, 5];
+const images=["stage1.jpg","stage2.jpg","stage3.jpg"];
+const sizes=[3,4,5];
 
-let currentStage = 0;
-let selected = null;
+let currentStage=0;
+let selected=null;
 
-function startStage(stage) {
-    document.getElementById('bgMusic').play();
-    currentStage = stage;
-    loadGame();
+function startStage(stage){
+ document.getElementById('bgMusic').play();
+ currentStage=stage;
+ loadGame();
 }
 
-function loadGame() {
-    const size = sizes[currentStage];
-    const game = document.getElementById('game');
-    game.innerHTML = `<h2>Stage ${currentStage + 1}</h2>`;
+function loadGame(){
+ const size=sizes[currentStage];
+ const game=document.getElementById('game');
+ game.innerHTML=`<h2>Stage ${currentStage+1}</h2>`;
 
-    const grid = document.createElement('div');
-    grid.className = 'grid';
-    grid.style.gridTemplateColumns = `repeat(${size}, 90px)`;
+ const grid=document.createElement('div');
+ grid.className='grid';
+ grid.style.gridTemplateColumns=`repeat(${size},90px)`;
 
-    let tiles = [...Array(size * size).keys()];
-    tiles.sort(() => Math.random() - 0.5);
+ let tiles=[...Array(size*size).keys()];
+ tiles.sort(()=>Math.random()-0.5);
 
-    tiles.forEach(index => {
-        const tile = document.createElement('div');
-        tile.className = 'tile';
+ tiles.forEach((value,i)=>{
+ const tile=document.createElement('div');
+ tile.className='tile';
 
-        const x = index % size;
-        const y = Math.floor(index / size);
+ const x=value%size;
+ const y=Math.floor(value/size);
 
-        tile.style.backgroundImage = `url(${images[currentStage]})`;
-        tile.style.backgroundSize = `${size * 90}px ${size * 90}px`;
-        tile.style.backgroundPosition = `-${x * 90}px -${y * 90}px`;
+ tile.style.backgroundImage=`url(${images[currentStage]})`;
+ tile.style.backgroundSize=`${size*90}px ${size*90}px`;
+ tile.style.backgroundPosition=`-${x*90}px -${y*90}px`;
 
-        tile.onclick = () => selectTile(tile);
-        grid.appendChild(tile);
-    });
+ // IMPORTANT: store correct index
+ tile.dataset.correct=value;
+ tile.dataset.current=i;
 
-    game.appendChild(grid);
+ tile.onclick=()=>selectTile(tile);
+ grid.appendChild(tile);
+ });
+
+ game.appendChild(grid);
 }
 
-function selectTile(tile) {
-    if (!selected) {
-        selected = tile;
-        tile.style.border = "3px solid red";
-    } else {
-        let temp = selected.style.backgroundPosition;
-        selected.style.backgroundPosition = tile.style.backgroundPosition;
-        tile.style.backgroundPosition = temp;
-        selected.style.border = "none";
-        selected = null;
-        checkWin();
-    }
+function selectTile(tile){
+ if(!selected){
+ selected=tile;
+ tile.style.border="3px solid red";
+ } else {
+ // swap positions
+ let tempPos=selected.style.backgroundPosition;
+ let tempCorrect=selected.dataset.correct;
+
+ selected.style.backgroundPosition=tile.style.backgroundPosition;
+ selected.dataset.correct=tile.dataset.correct;
+
+ tile.style.backgroundPosition=tempPos;
+ tile.dataset.correct=tempCorrect;
+
+ selected.style.border="none";
+ selected=null;
+ checkWin();
+ }
 }
 
-function checkWin() {
-    const tiles = document.querySelectorAll('.tile');
-    const size = sizes[currentStage];
-    let correct = true;
+function checkWin(){
+ const tiles=document.querySelectorAll('.tile');
+ let correct=true;
 
-    tiles.forEach((tile, i) => {
-        const x = i % size;
-        const y = Math.floor(i / size);
-        const pos = `-${x * 90}px -${y * 90}px`;
-        if (tile.style.backgroundPosition !== pos) correct = false;
-    });
+ tiles.forEach((tile,i)=>{
+ if(parseInt(tile.dataset.correct)!==i){
+ correct=false;
+ }
+ });
 
-    if (correct) {
-        confetti();
+ if(correct){
+ confetti();
 
-        if (currentStage === 0) {
-            document.getElementById('btn2').disabled = false;
-            document.getElementById('btn2').classList.remove('locked');
-        }
-        if (currentStage === 1) {
-            document.getElementById('btn3').disabled = false;
-            document.getElementById('btn3').classList.remove('locked');
-        }
+ if(currentStage===0){
+ document.getElementById('btn2').disabled=false;
+ document.getElementById('btn2').classList.remove('locked');
+ }
+ if(currentStage===1){
+ document.getElementById('btn3').disabled=false;
+ document.getElementById('btn3').classList.remove('locked');
+ }
 
-        if (currentStage === 2) {
-            setTimeout(startQuiz, 1000);
-        }
-    }
+ if(currentStage===2){
+ setTimeout(startQuiz,1000);
+ }
+ }
 }
 
-function confetti() {
-    for (let i = 0; i < 50; i++) {
-        const c = document.createElement('div');
-        c.className = 'confetti';
-        c.style.left = Math.random() * 100 + 'vw';
-        c.style.background = ['#ff4d6d','#ff99ac','#ffc2d1'][Math.floor(Math.random()*3)];
-        document.body.appendChild(c);
-        setTimeout(() => c.remove(), 3000);
-    }
+function confetti(){
+ for(let i=0;i<60;i++){
+ const c=document.createElement('div');
+ c.className='confetti';
+ c.style.left=Math.random()*100+'vw';
+ c.style.background=['#ff4d6d','#ff99ac','#ffc2d1'][Math.floor(Math.random()*3)];
+ document.body.appendChild(c);
+ setTimeout(()=>c.remove(),3000);
+ }
 }
 
 // QUIZ
-const quizData = [
-    { q: "Question 1: When did we first meet?", options: ["A","B","C","D"] },
-    { q: "Question 2: Our favorite place?", options: ["A","B","C","D"] },
-    { q: "Question 3: Best memory?", options: ["A","B","C","D"] },
-    { q: "Question 4: What do you love most?", options: ["A","B","C","D"] },
-    { q: "Question 5: Forever together? 💖", options: ["Yes","Always","Forever","100%"] }
+const quizData=[
+{q:"Question 1: When did we first meet?",options:["A","B","C","D"]},
+{q:"Question 2: Our favorite place?",options:["A","B","C","D"]},
+{q:"Question 3: Best memory?",options:["A","B","C","D"]},
+{q:"Question 4: What do you love most?",options:["A","B","C","D"]},
+{q:"Question 5: Forever together? 💖",options:["Yes","Always","Forever","100%"]}
 ];
 
-let qIndex = 0;
+let qIndex=0;
 
-function startQuiz() {
-    document.getElementById('game').innerHTML = "";
-    const quiz = document.getElementById('quiz');
-    quiz.style.display = 'block';
-    showQuestion();
+function startQuiz(){
+ document.getElementById('game').innerHTML="";
+ const quiz=document.getElementById('quiz');
+ quiz.style.display='block';
+ showQuestion();
 }
 
-function showQuestion() {
-    const q = quizData[qIndex];
-    const quiz = document.getElementById('quiz');
-
-    quiz.innerHTML = `<h2>${q.q}</h2>`;
-
-    q.options.forEach(opt => {
-        quiz.innerHTML += `<button onclick='nextQ()'>${opt}</button><br>`;
-    });
+function showQuestion(){
+ const q=quizData[qIndex];
+ const quiz=document.getElementById('quiz');
+ quiz.innerHTML=`<h2>${q.q}</h2>`;
+ q.options.forEach(opt=>{
+ quiz.innerHTML+=`<button onclick='nextQ()'>${opt}</button><br>`;
+ });
 }
 
-function nextQ() {
-    qIndex++;
-    if (qIndex < quizData.length) showQuestion();
-    else {
-        document.getElementById('quiz').innerHTML = "<h2>💖 Relationship Renewed 💖</h2>";
-        confetti();
-    }
+function nextQ(){
+ qIndex++;
+ if(qIndex<quizData.length) showQuestion();
+ else{
+ document.getElementById('quiz').innerHTML="<h2>💖 Relationship Renewed 💖</h2>";
+ confetti();
+ }
 }
 </script>
 
