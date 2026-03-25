@@ -3,231 +3,253 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>💖 Relationship Renewal 💖</title>
+<title>💖 For My Betu 💖</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@300;500&display=swap" rel="stylesheet">
 
 <style>
-body { font-family:'Poppins',sans-serif; text-align:center; background:linear-gradient(135deg,#fff0f5,#ffe4e1); color:#d63384; overflow-x:hidden; }
+body {
+ font-family:'Poppins',sans-serif;
+ text-align:center;
+ background:linear-gradient(135deg,#fff0f5,#ffe4e1);
+ color:#d63384;
+ overflow-x:hidden;
+}
+
 h1 { font-family:'Pacifico',cursive; }
+
 .hidden { display:none; }
-.grid { display:grid; gap:5px; justify-content:center; margin:20px auto; }
-.tile { width:90px; height:90px; border-radius:10px; cursor:pointer; background-repeat:no-repeat; transition:transform .2s; }
-.tile:hover { transform:scale(1.05); }
-button { padding:12px 25px; border:none; background:#ff4d6d; color:white; border-radius:25px; margin:10px; cursor:pointer; font-size:16px; }
-.locked { opacity:0.5; }
 
-.confetti { position:fixed; width:8px; height:8px; top:0; animation:fall 3s linear forwards; }
-@keyframes fall { to { transform:translateY(100vh) rotate(720deg); opacity:0; } }
+button {
+ padding:12px 25px;
+ border:none;
+ background:#ff4d6d;
+ color:white;
+ border-radius:25px;
+ margin:10px;
+ cursor:pointer;
+ font-size:16px;
+ transition:0.3s;
+}
+button:hover { transform:scale(1.05); }
 
-.heart { position:fixed; bottom:-20px; font-size:20px; animation:float 6s linear infinite; }
-@keyframes float { to { transform:translateY(-100vh); opacity:0; } }
+.bigBtn { font-size:20px; padding:15px 35px; }
 
-.fade { animation:fadeIn .6s ease; }
+.fade { animation:fadeIn .8s ease; }
 @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
 
-.proposal { font-size:2rem; margin-top:20px; }
-.bigBtn { font-size:20px; padding:15px 35px; }
+.heart {
+ position:fixed;
+ bottom:-20px;
+ font-size:20px;
+ animation:float 6s linear infinite;
+}
+@keyframes float { to { transform:translateY(-100vh); opacity:0; } }
+
+/* SLIDER */
+#slider { width:80%; margin-top:30px; }
+
+/* PUZZLE */
+.grid { display:grid; gap:5px; justify-content:center; margin:20px auto; }
+.tile { width:90px; height:90px; border-radius:10px; cursor:pointer; background-repeat:no-repeat; }
+
+/* LETTER */
+#loveLetter {
+ max-width:600px;
+ margin:auto;
+ font-size:18px;
+ line-height:1.6;
+}
+
+/* IMAGE */
+#slideImg {
+ width:250px;
+ border-radius:15px;
+ box-shadow:0 10px 25px rgba(0,0,0,0.2);
+}
 </style>
 </head>
+
 <body>
 
-<h1>💖 Relationship Renewal 💖</h1>
+<h1>💖 For My Betu 💖</h1>
 
-<button id="startBtn" onclick="startRenewal()">Start Renewal 💕</button>
+<p>Swipe to unlock our story 💕</p>
+<input type="range" min="0" max="100" value="0" id="slider">
 
-<div id="stageButtons" class="hidden">
-<button onclick="startStage(0)">Stage 1</button>
-<button id="btn2" class="locked" disabled onclick="startStage(1)">Stage 2</button>
-<button id="btn3" class="locked" disabled onclick="startStage(2)">Stage 3</button>
-</div>
-
+<div id="main" class="hidden">
+<button onclick="startStory()">Start Our Journey 💖</button>
 <div id="game"></div>
 <div id="quiz" class="hidden"></div>
 <div id="final" class="hidden"></div>
+</div>
 
 <audio id="bgMusic" loop>
 <source src="music.mp3" type="audio/mpeg">
 </audio>
 
 <script>
-const images=["stage1.jpg","stage2.jpg","stage3.jpg"];
-const sizes=[3,4,5];
 
-let currentStage=0, selected=null;
-
-function startRenewal(){
- document.getElementById('startBtn').style.display='none';
- document.getElementById('stageButtons').classList.remove('hidden');
- createHearts();
-}
-
-function startStage(stage){
- document.getElementById('bgMusic').play();
- currentStage=stage;
- loadGame();
-}
-
-function loadGame(){
- const size=sizes[currentStage];
- const game=document.getElementById('game');
- game.innerHTML=`<h2 class='fade'>Stage ${currentStage+1}</h2>`;
-
- const grid=document.createElement('div');
- grid.className='grid';
- grid.style.gridTemplateColumns=`repeat(${size},90px)`;
-
- let tiles=[...Array(size*size).keys()].sort(()=>Math.random()-0.5);
-
- tiles.forEach(value=>{
- const tile=document.createElement('div');
- tile.className='tile';
-
- const x=value%size;
- const y=Math.floor(value/size);
-
- tile.style.backgroundImage=`url(${images[currentStage]})`;
- tile.style.backgroundSize=`${size*90}px ${size*90}px`;
- tile.style.backgroundPosition=`-${x*90}px -${y*90}px`;
- tile.dataset.correct=value;
-
- tile.onclick=()=>selectTile(tile);
- grid.appendChild(tile);
- });
-
- game.appendChild(grid);
-}
-
-function selectTile(tile){
- if(!selected){ selected=tile; tile.style.border="3px solid red"; }
- else{
- let tempPos=selected.style.backgroundPosition;
- let tempCorrect=selected.dataset.correct;
-
- selected.style.backgroundPosition=tile.style.backgroundPosition;
- selected.dataset.correct=tile.dataset.correct;
-
- tile.style.backgroundPosition=tempPos;
- tile.dataset.correct=tempCorrect;
-
- selected.style.border="none";
- selected=null;
- checkWin();
+/* SLIDER UNLOCK */
+document.getElementById("slider").oninput = function(){
+ if(this.value > 90){
+   document.getElementById("main").classList.remove("hidden");
  }
-}
+};
 
-function checkWin(){
- const tiles=document.querySelectorAll('.tile');
- let correct=true;
-
- tiles.forEach((tile,i)=>{
- if(parseInt(tile.dataset.correct)!==i) correct=false;
- });
-
- if(correct){
- confettiBlast();
- if(currentStage===0) unlock('btn2');
- if(currentStage===1) unlock('btn3');
- if(currentStage===2) setTimeout(startQuiz,1200);
- }
-}
-
-function unlock(id){
- const btn=document.getElementById(id);
- btn.disabled=false; btn.classList.remove('locked');
-}
-
-function confettiBlast(){
- for(let i=0;i<150;i++){
- const c=document.createElement('div');
- c.className='confetti';
- c.style.left=Math.random()*100+'vw';
- c.style.background=['#ff4d6d','#ff99ac','#ffc2d1','#ffccd5'][Math.floor(Math.random()*4)];
- document.body.appendChild(c);
- setTimeout(()=>c.remove(),3000);
- }
-}
-
-function createHearts(){
- setInterval(()=>{
+/* HEARTS */
+setInterval(()=>{
  const h=document.createElement('div');
  h.className='heart';
  h.innerHTML='💖';
  h.style.left=Math.random()*100+'vw';
  document.body.appendChild(h);
  setTimeout(()=>h.remove(),6000);
- },500);
+},500);
+
+/* DATE LOCK */
+function checkDate(){
+ let input = prompt("Enter our anniversary date (DDMMYYYY) 💖");
+ if(input !== "04042024"){
+   alert("Wrong date 😢");
+   location.reload();
+ }
 }
 
-// QUIZ
+/* START */
+function startStory(){
+ checkDate();
+ document.getElementById('bgMusic').play();
+ startQuiz();
+}
+
+/* QUIZ */
 const quizData=[
-{q:"Question 1: When did we first meet?",options:["16 Dec 25","04 Apr 24","12 Oct 23","18 Apr 24"],correct:1},
-{q:"Question 2: Our favorite Thing And place?",options:["Staying At Home","Wondering Together Holding Hands Without a plan","Going on A vaccaion","Spend The Most Time Together"],correct:3},
-{q:"Question 3: Best memory?",options:["We went to mathura","We did boating","We went Agra","All of the above"],correct:3},
-{q:"Question 4: Where I Gave You Your First Soft Toy?",options:["Bhopal","Delhi","Jaipur","Agra"],correct:2},
-{q:"Question 5: Will We Always Be Forever & together? 💖",options:["Yes","Always","Forever","100%"],correct:2}
+{q:"When did we first meet?",options:["04 Apr 24","07 Apr 24","12 Oct 23"],correct:1},
+{q:"Our first memory?",options:["Combi & Ice Cream","Movie","Shopping"],correct:0},
+{q:"Our first trip?",options:["Mathura","Delhi","Goa"],correct:0},
 ];
 
-let qIndex=0, selectedAnswer=null;
+let qIndex=0, selected=null;
 
 function startQuiz(){
- document.getElementById('game').innerHTML="";
- const quiz=document.getElementById('quiz');
- quiz.classList.remove('hidden');
- qIndex=0;
- showQuestion();
+ document.getElementById('quiz').classList.remove('hidden');
+ showQ();
 }
 
-function showQuestion(){
+function showQ(){
  const q=quizData[qIndex];
- const quiz=document.getElementById('quiz');
- quiz.innerHTML=`<h2 class='fade'>${q.q}</h2>`;
-
- q.options.forEach((opt,i)=>{
- quiz.innerHTML+=`<button onclick='selectAnswer(${i},this)'>${opt}</button><br>`;
+ const div=document.getElementById('quiz');
+ div.innerHTML=`<h2>${q.q}</h2>`;
+ q.options.forEach((o,i)=>{
+ div.innerHTML+=`<button onclick="selectAns(${i},this)">${o}</button><br>`;
  });
-
- quiz.innerHTML+=`<br><button onclick='nextQ()'>Next ➡️</button>`;
+ div.innerHTML+=`<br><button onclick="nextQ()">Next</button>`;
 }
 
-function selectAnswer(i,el){
- selectedAnswer=i;
+function selectAns(i,el){
+ selected=i;
  document.querySelectorAll('#quiz button').forEach(b=>b.style.background='#ff4d6d');
- el.style.background='#28a745';
+ el.style.background='green';
 }
 
 function nextQ(){
- if(selectedAnswer===null) return alert('Select an answer!');
-
- if(selectedAnswer!==quizData[qIndex].correct){
- document.getElementById('quiz').innerHTML=`<h2>❌ Wrong Answer</h2><button class='bigBtn' onclick='location.reload()'>Start Again 💔</button>`;
+ if(selected===null) return alert("Choose one");
+ if(selected!==quizData[qIndex].correct){
+ document.getElementById('quiz').innerHTML="<h2>❌ Try again</h2>";
  return;
  }
-
- selectedAnswer=null;
+ selected=null;
  qIndex++;
-
- if(qIndex<quizData.length) showQuestion();
+ if(qIndex<quizData.length) showQ();
  else showFinal();
 }
 
+/* FINAL */
 function showFinal(){
  document.getElementById('quiz').classList.add('hidden');
  const final=document.getElementById('final');
  final.classList.remove('hidden');
 
- final.innerHTML=`
- <div class='proposal fade'>
- 💖 I Love You My Betu , my Cutu , My Sweetuuuu , My Putu , My Chonuu Monuu , My Ponuuu , My Life , I Love You The Most💖<br><br>
+ final.innerHTML = `
+ <div class="fade">
+
+ <div id="slideshow">
+   <img id="slideImg" src="photo1.jpg">
+ </div>
+
+ <br><div id="loveLetter"></div>
+
+ <br><br>
+ <div style="font-size:22px;">
+ 💖 You are my today and all of my tomorrows 💖
+ <br><br>
  Will you stay with me forever? 💍
  <br><br>
- <button class='bigBtn' onclick='finalYes()'>YES 💖</button>
- </div>`;
+ <button class="bigBtn" onclick="yes()">YES 💖</button>
+ </div>
+
+ </div>
+ `;
+
+ startSlideshow();
+ typeLetter();
 }
 
-function finalYes(){
- document.getElementById('final').innerHTML="<h1>💖 Forever Together Many Many Congralutaions To You Your Relationship Is Renewed💖</h1>";
- confettiBlast();
+/* SLIDESHOW */
+const slides=["photo1.jpg","photo2.jpg","photo3.jpg"];
+let si=0;
+
+function startSlideshow(){
+ setInterval(()=>{
+   si=(si+1)%slides.length;
+   document.getElementById("slideImg").src=slides[si];
+ },2000);
 }
+
+/* TYPEWRITER LETTER */
+const text = `From that esports tournament...
+I never knew that a simple meeting would become the most beautiful part of my life.
+
+On 7th April, when we met...
+those small moments like eating combi and ice cream became memories I’ll never forget.
+
+And when I saw you crying a little when I was leaving...
+that’s when I realized you are something special.
+
+From Mathura to Agra to Mahakaleshwar...
+every place became meaningful because you were with me.
+
+You gave me happiness, trust, and a love I never imagined.
+
+Thank you for coming into my life, Betu.
+
+I don’t just love you...
+I truly, deeply, endlessly love you. 💖`;
+
+let ti=0;
+
+function typeLetter(){
+ const el=document.getElementById("loveLetter");
+ if(ti<text.length){
+   el.innerHTML+=text.charAt(ti);
+   ti++;
+   setTimeout(typeLetter,40);
+ }
+}
+
+/* FINAL YES */
+function yes(){
+ document.getElementById('final').innerHTML="<h1>💖 Forever Together 💖<br><br>I Love You Betu 💕</h1>";
+}
+
+/* MUSIC TOGGLE */
+function toggleMusic(){
+ const m=document.getElementById('bgMusic');
+ if(m.paused) m.play();
+ else m.pause();
+}
+
 </script>
 
 </body>
