@@ -4,33 +4,45 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>💖 Relationship Renewal 💖</title>
-
 <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@300;500&display=swap" rel="stylesheet">
 
 <style>
-body { font-family: 'Poppins', sans-serif; text-align:center; background: linear-gradient(135deg,#fff0f5,#ffe4e1); color:#d63384; }
+body { font-family:'Poppins',sans-serif; text-align:center; background:linear-gradient(135deg,#fff0f5,#ffe4e1); color:#d63384; }
 h1 { font-family:'Pacifico',cursive; }
+.hidden { display:none; }
 .grid { display:grid; gap:5px; justify-content:center; margin:20px auto; }
-.tile { width:90px; height:90px; border-radius:10px; cursor:pointer; background-repeat:no-repeat; }
-button { padding:10px 20px; border:none; background:#ff4d6d; color:white; border-radius:20px; margin:5px; cursor:pointer; }
+.tile { width:90px; height:90px; border-radius:10px; cursor:pointer; background-repeat:no-repeat; transition:transform .2s; }
+.tile:hover { transform:scale(1.05); }
+button { padding:12px 25px; border:none; background:#ff4d6d; color:white; border-radius:25px; margin:10px; cursor:pointer; font-size:16px; }
 .locked { opacity:0.5; }
-.confetti { position:fixed; width:10px; height:10px; top:0; animation:fall 3s linear forwards; }
-@keyframes fall { to { transform:translateY(100vh); opacity:0; } }
+
+/* Confetti */
+.confetti { position:fixed; width:8px; height:8px; top:0; animation:fall 3s linear forwards; }
+@keyframes fall { to { transform:translateY(100vh) rotate(720deg); opacity:0; } }
+
+/* Pop animation */
+.pop { animation:pop .3s ease; }
+@keyframes pop { 0%{transform:scale(0.8);} 100%{transform:scale(1);} }
+
+/* Fade */
+.fade { animation:fadeIn .5s ease; }
+@keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
 </style>
 </head>
 <body>
 
 <h1>💖 Relationship Renewal 💖</h1>
-<p>Unlock all stages 💕</p>
 
-<div>
+<button id="startBtn" onclick="startRenewal()">Start Renewal 💕</button>
+
+<div id="stageButtons" class="hidden">
 <button onclick="startStage(0)">Stage 1</button>
-<button id="btn2" class="locked" onclick="startStage(1)" disabled>Stage 2</button>
-<button id="btn3" class="locked" onclick="startStage(2)" disabled>Stage 3</button>
+<button id="btn2" class="locked" disabled onclick="startStage(1)">Stage 2</button>
+<button id="btn3" class="locked" disabled onclick="startStage(2)">Stage 3</button>
 </div>
 
 <div id="game"></div>
-<div id="quiz" style="display:none"></div>
+<div id="quiz" class="hidden"></div>
 
 <audio id="bgMusic" loop>
 <source src="music.mp3" type="audio/mpeg">
@@ -43,6 +55,11 @@ const sizes=[3,4,5];
 let currentStage=0;
 let selected=null;
 
+function startRenewal(){
+ document.getElementById('startBtn').style.display='none';
+ document.getElementById('stageButtons').classList.remove('hidden');
+}
+
 function startStage(stage){
  document.getElementById('bgMusic').play();
  currentStage=stage;
@@ -52,7 +69,7 @@ function startStage(stage){
 function loadGame(){
  const size=sizes[currentStage];
  const game=document.getElementById('game');
- game.innerHTML=`<h2>Stage ${currentStage+1}</h2>`;
+ game.innerHTML=`<h2 class='fade'>Stage ${currentStage+1}</h2>`;
 
  const grid=document.createElement('div');
  grid.className='grid';
@@ -63,8 +80,7 @@ function loadGame(){
 
  tiles.forEach((value,i)=>{
  const tile=document.createElement('div');
- tile.className='tile';
-
+ tile.className='tile pop';
  const x=value%size;
  const y=Math.floor(value/size);
 
@@ -72,10 +88,7 @@ function loadGame(){
  tile.style.backgroundSize=`${size*90}px ${size*90}px`;
  tile.style.backgroundPosition=`-${x*90}px -${y*90}px`;
 
- // IMPORTANT: store correct index
  tile.dataset.correct=value;
- tile.dataset.current=i;
-
  tile.onclick=()=>selectTile(tile);
  grid.appendChild(tile);
  });
@@ -84,11 +97,11 @@ function loadGame(){
 }
 
 function selectTile(tile){
+ tile.classList.add('pop');
  if(!selected){
  selected=tile;
  tile.style.border="3px solid red";
  } else {
- // swap positions
  let tempPos=selected.style.backgroundPosition;
  let tempCorrect=selected.dataset.correct;
 
@@ -109,35 +122,31 @@ function checkWin(){
  let correct=true;
 
  tiles.forEach((tile,i)=>{
- if(parseInt(tile.dataset.correct)!==i){
- correct=false;
- }
+ if(parseInt(tile.dataset.correct)!==i){ correct=false; }
  });
 
  if(correct){
- confetti();
+ confettiBlast();
 
- if(currentStage===0){
- document.getElementById('btn2').disabled=false;
- document.getElementById('btn2').classList.remove('locked');
- }
- if(currentStage===1){
- document.getElementById('btn3').disabled=false;
- document.getElementById('btn3').classList.remove('locked');
- }
+ if(currentStage===0){ unlock('btn2'); }
+ if(currentStage===1){ unlock('btn3'); }
 
- if(currentStage===2){
- setTimeout(startQuiz,1000);
- }
+ if(currentStage===2){ setTimeout(startQuiz,1200); }
  }
 }
 
-function confetti(){
- for(let i=0;i<60;i++){
+function unlock(id){
+ const btn=document.getElementById(id);
+ btn.disabled=false;
+ btn.classList.remove('locked');
+}
+
+function confettiBlast(){
+ for(let i=0;i<120;i++){
  const c=document.createElement('div');
  c.className='confetti';
  c.style.left=Math.random()*100+'vw';
- c.style.background=['#ff4d6d','#ff99ac','#ffc2d1'][Math.floor(Math.random()*3)];
+ c.style.background=['#ff4d6d','#ff99ac','#ffc2d1','#ffccd5'][Math.floor(Math.random()*4)];
  document.body.appendChild(c);
  setTimeout(()=>c.remove(),3000);
  }
@@ -145,37 +154,58 @@ function confetti(){
 
 // QUIZ
 const quizData=[
-{q:"Question 1: When did we first meet?",options:["A","B","C","D"]},
-{q:"Question 2: Our favorite place?",options:["A","B","C","D"]},
-{q:"Question 3: Best memory?",options:["A","B","C","D"]},
-{q:"Question 4: What do you love most?",options:["A","B","C","D"]},
-{q:"Question 5: Forever together? 💖",options:["Yes","Always","Forever","100%"]}
+{q:"Question 1: When did we first meet?",options:["A","B","C","D"],correct:0},
+{q:"Question 2: Our favorite place?",options:["A","B","C","D"],correct:1},
+{q:"Question 3: Best memory?",options:["A","B","C","D"],correct:2},
+{q:"Question 4: What do you love most?",options:["A","B","C","D"],correct:3},
+{q:"Question 5: Forever together? 💖",options:["Yes","Always","Forever","100%"],correct:3}
 ];
 
 let qIndex=0;
+let selectedAnswer=null;
 
 function startQuiz(){
  document.getElementById('game').innerHTML="";
  const quiz=document.getElementById('quiz');
- quiz.style.display='block';
+ quiz.classList.remove('hidden');
+ qIndex=0;
  showQuestion();
 }
 
 function showQuestion(){
  const q=quizData[qIndex];
  const quiz=document.getElementById('quiz');
- quiz.innerHTML=`<h2>${q.q}</h2>`;
- q.options.forEach(opt=>{
- quiz.innerHTML+=`<button onclick='nextQ()'>${opt}</button><br>`;
+
+ quiz.innerHTML=`<h2 class='fade'>${q.q}</h2>`;
+
+ q.options.forEach((opt,i)=>{
+ quiz.innerHTML+=`<button onclick='selectAnswer(${i})'>${opt}</button><br>`;
  });
+
+ quiz.innerHTML+=`<br><button onclick='nextQ()'>Next ➡️</button>`;
+}
+
+function selectAnswer(i){
+ selectedAnswer=i;
+ document.querySelectorAll('#quiz button').forEach(b=>b.style.background='#ff4d6d');
+ event.target.style.background='#28a745';
 }
 
 function nextQ(){
+ if(selectedAnswer===null) return alert('Select an answer!');
+
+ if(selectedAnswer!==quizData[qIndex].correct){
+ document.getElementById('quiz').innerHTML=`<h2>❌ Wrong Answer</h2><button onclick='location.reload()'>Start Again</button>`;
+ return;
+ }
+
+ selectedAnswer=null;
  qIndex++;
- if(qIndex<quizData.length) showQuestion();
+
+ if(qIndex<quizData.length){ showQuestion(); }
  else{
  document.getElementById('quiz').innerHTML="<h2>💖 Relationship Renewed 💖</h2>";
- confetti();
+ confettiBlast();
  }
 }
 </script>
