@@ -28,13 +28,9 @@ button {
 }
 .bigBtn { font-size:20px; }
 
-/* SLIDER */
 #slider { width:80%; }
-
-/* FIX: remove after unlock */
 .hidden { display:none; }
 
-/* PUZZLE */
 .grid { display:grid; gap:5px; justify-content:center; margin:20px auto; }
 .tile {
  width:90px;
@@ -46,7 +42,6 @@ button {
  transition:0.3s;
 }
 
-/* HEARTS */
 .heart {
  position:fixed;
  bottom:-20px;
@@ -55,20 +50,9 @@ button {
 }
 @keyframes float { to { transform:translateY(-100vh); opacity:0; } }
 
-/* SLIDESHOW ALWAYS TOP */
-#slideImg {
- width:250px;
- border-radius:15px;
- position:relative;
- z-index:10;
-}
+#slideImg { width:250px; border-radius:15px; }
 
-/* LETTER */
-#loveLetter {
- max-width:600px;
- margin:20px auto;
- line-height:1.6;
-}
+#loveLetter { max-width:600px; margin:20px auto; }
 
 </style>
 </head>
@@ -100,7 +84,7 @@ button {
 
 <script>
 
-/* FIX SLIDER LOCK */
+/* SLIDER FIX */
 slider.oninput=function(){
  if(this.value>90){
   main.classList.remove("hidden");
@@ -125,7 +109,7 @@ function startStory(){
  startStage(0);
 }
 
-/* PUZZLE WITH REVEAL */
+/* PUZZLE */
 const images=["stage1.jpg","stage2.jpg","stage3.jpg"];
 const sizes=[3,4,5];
 
@@ -222,7 +206,7 @@ function checkWin(){
  }
 }
 
-/* ORIGINAL QUIZ */
+/* QUIZ */
 const quizData=[
 {q:"Question 1: When did we first meet?",options:["16 Dec 25","04 Apr 24","12 Oct 23","18 Apr 24"],correct:1},
 {q:"Question 2: Our favorite Thing And place?",options:["Staying At Home","Wondering Together Holding Hands Without a plan","Going on A vaccaion","Spend The Most Time Together"],correct:3},
@@ -302,7 +286,7 @@ function nextExtra(){
  else startVoiceScene();
 }
 
-/* 🎙️ VOICE SCENE */
+/* VOICE SCENE */
 function startVoiceScene(){
  extraQuiz.classList.add("hidden");
  voiceScreen.classList.remove("hidden");
@@ -314,10 +298,13 @@ function startVoiceScene(){
  `;
 
  startSlide();
+
+ bgMusic.pause();       // 🔥 STOP MUSIC
  voiceMsg.play();
 
  voiceMsg.onended = ()=>{
   document.getElementById("nextBtn").classList.remove("hidden");
+  bgMusic.play();       // 🔥 RESUME MUSIC
  };
 }
 
@@ -332,7 +319,7 @@ function startSlide(){
  },2000);
 }
 
-/* LETTER AFTER VOICE */
+/* LETTER */
 function startStoryLetter(){
  voiceScreen.classList.add("hidden");
  final.classList.remove("hidden");
@@ -347,7 +334,6 @@ function startStoryLetter(){
  startCountdown();
 }
 
-/* LETTER */
 const text=`From that esports tournament...
 I never knew that a simple meeting would become the most beautiful part of my life...
 
@@ -380,7 +366,7 @@ function startCountdown(){
  },1000);
 }
 
-/* FINAL EXPLOSION */
+/* FINAL */
 function yes(){
  document.body.innerHTML="<h1 style='margin-top:40vh;'>💖 FOREVER 💖</h1>";
 
